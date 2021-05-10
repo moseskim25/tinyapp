@@ -9,8 +9,15 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 function generateRandomString() {
-
+  let result = '';
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 6; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return result;
 }
+
+console.log(generateRandomString());
 
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
