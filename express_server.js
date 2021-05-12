@@ -7,6 +7,7 @@ app.set("view engine", "ejs");
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 const bodyParser = require("body-parser");
+const { filter } = require("async");
 app.use(bodyParser.urlencoded({extended: true}));
 
 function generateRandomString() {
@@ -32,6 +33,19 @@ const authenticateUser = (email, password) => {
 
   if (userFound && userFound.password === password) {
     return userFound;
+  }
+  return false;
+}
+
+//Checks if the url is in the database. Input the filtered database which includes 
+//only those urls that belong to the client. The req variable is passed along when
+//the user hits EDIT in the /urls page. It includes the url id in question which is
+//passed into the following function
+const urlsForUser = function(db, req) {
+  for (let id in db) {
+    if (req.params.shortURL === id) {
+      return true;
+    }
   }
   return false;
 }
@@ -190,27 +204,32 @@ app.get("/urls/:shortURL", (req, res) => {
   return res.send('Please log in to continue');
 });
 
-const urlsForUser = function(db, req) {
-  for (let id in db) {
-    if (req.params.shortURL === id) {
-      return true;
-    }
-  }
-  return false;
-}
+
 
 //DELETES URL
 app.post('/urls/:shortURL/delete', (req, res) => {
   const {shortURL} = req.params;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  if (!isLoggedIn(req)) return res.status(401).send('Unauthorized');
+
+  const newDB = filteredDB(urlDatabase, req.cookies.user_id.id);
+  if (urlsForUser(newDB, req)) {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  }
+  return res.status(401).send('Unauthorized');
 })
 
 //EDITS URL
 app.post('/urls/:shortURL', (req, res) => {
-  const {shortURL} = req.params;
-  urlDatabase[shortURL].longURL = req.body.updatedURL;
-  res.redirect('/urls');
+  if (!isLoggedIn(req)) return res.status(401).send('Unauthorized');
+
+  const newDB = filteredDB(urlDatabase, req.cookies.user_id.id);
+  if (urlsForUser(newDB, req)) {
+    const {shortURL} = req.params;
+    urlDatabase[shortURL].longURL = req.body.updatedURL;
+    res.redirect('/urls');
+  }
+  return res.status(401).send('Unauthorized');
 })
 
 
