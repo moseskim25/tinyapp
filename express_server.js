@@ -115,7 +115,10 @@ app.post('/login', (req, res) => {
 //Create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: req.cookies.user_id };
-  res.render("urls_new", templateVars);
+  if (!req.cookies.user_id) {
+    return res.render('urls_login');
+  }
+  return res.render("urls_new", templateVars);
 });
 
 //When user hits submit to create a new URL it will redirect them to the urls/shortURL page
