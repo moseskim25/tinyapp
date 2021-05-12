@@ -11,17 +11,17 @@
       </div>
     </div>
 
-    <% if (username) { %>
+    <% if (user_id) { %>
       <form method='POST' action='/logout'>
         <div class='input-group'>
-          <p class='form-control'><%= username %></p>
+          <p class='form-control'><%= user_id %></p>
           <button type='submit' class="btn btn-primary">Logout</button>
         </div>
       </form>
     <% } else { %> 
       <form method='POST' action='/login'>
         <div class='input-group'>
-          <input type='text' name='username' placeholder='username' class='form-control'/>
+          <input type='text' name='user_id' placeholder='user id' class='form-control'/>
           <button type='submit' class="btn btn-primary">Submit</button>
         </div>
       </form>
