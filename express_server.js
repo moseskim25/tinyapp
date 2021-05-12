@@ -55,10 +55,10 @@ app.get("/urls", (req, res) => {
 });
 
 //REGISTRATION
-app.get('/registration', (req,res) => {
+app.get('/register', (req,res) => {
   res.render('urls_registration');
 })
-app.post('/registration', (req,res) => {
+app.post('/register', (req,res) => {
   const id = generateRandomString();
   users[id];
   users[id] = {
