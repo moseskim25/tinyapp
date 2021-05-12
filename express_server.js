@@ -21,22 +21,19 @@ function generateRandomString() {
 //Checks if the email already exists in users database. Used in registration
 let doesEmailExist = function(email) {
   for (let user in users) {
-    if (users[user].email === email) return true;
+    if (users[user].email === email) return users[user];
   }
   return false;
 }
 
 //Authenticates user
 const authenticateUser = (email, password) => {
-  for (let user in users) {
-    if (users[user].email === email) {
-      if (users[user].password === password) {
-        return { data: users[user], error: null};
-      }
-      return { data: null, error: 'Incorrect password'};
-    }
+  const userFound = doesEmailExist(email);
+
+  if (userFound && userFound.password === password) {
+    return userFound;
   }
-  return { data: null, error: 'Invalid email'};
+  return false;
 }
 
 const urlDatabase = {
@@ -71,7 +68,8 @@ app.get("/urls.json", (req, res) => {
 
 //LIST OF URLS PAGE
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user_id: req.cookies.user_id };
+  const templateVars = { urls: urlDatabase,
+    user: req.cookies.user_id};
   res.render("urls_index", templateVars);
 });
 
@@ -95,7 +93,7 @@ app.post('/register', (req,res) => {
     password: req.body.password,
     email: req.body.email
   }
-  res.cookie('user_id', id);
+  res.cookie('user_id', users[id]);
   res.redirect('/urls');
 })
 
@@ -106,17 +104,17 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const result = authenticateUser(req.body.email, req.body.password);
 
-  if (result.error) {
-    return res.status(403).send(result.error);
+  if (result) {
+    res.cookie('user_id', result);
+    return res.redirect('/urls');
   }
-  console.log(result.data.id);
-  res.cookie('user_id', result.data.id);
-  return res.redirect('/urls');
+
+  return res.status(403).send('Invalid email or password');
 })
 
 //Create new URL
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user_id: req.cookies.user_id };
+  const templateVars = { user: req.cookies.user_id };
   res.render("urls_new", templateVars);
 });
 
@@ -139,7 +137,10 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: req.cookies.user_id };
+  const templateVars = { shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL], 
+    user: req.cookies.user_id,
+  };
   res.render("urls_show", templateVars);
 });
 

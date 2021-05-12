@@ -11,10 +11,10 @@
       </div>
     </div>
 
-    <% if (user_id) { %>
+    <% if (user) { %>
       <form method='POST' action='/logout'>
         <div class='input-group'>
-          <p class='form-control'><%= user_id %></p>
+          <p class='form-control'>Logged in as: <%= user.email %></p>
           <button type='submit' class="btn btn-primary">Logout</button>
         </div>
       </form>
