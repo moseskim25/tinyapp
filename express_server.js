@@ -23,6 +23,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+//STORES USER DATA
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 //ROOT PAGE
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -43,6 +57,17 @@ app.get("/urls", (req, res) => {
 //REGISTRATION
 app.get('/registration', (req,res) => {
   res.render('urls_registration');
+})
+app.post('/registration', (req,res) => {
+  const id = generateRandomString();
+  users[id];
+  users[id] = {
+    id: id,
+    password: req.body.password,
+    email: req.body.email
+  }
+  res.cookie('user_id', id);
+  res.redirect('/urls');
 })
 
 //Create new URL
