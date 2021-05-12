@@ -70,7 +70,11 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase,
     user: req.cookies.user_id};
-  res.render("urls_index", templateVars);
+  
+  if (req.cookies.user_id) {
+    return res.render("urls_index", templateVars);
+  }
+  return res.render('urls_login');
 });
 
 //REGISTRATION
