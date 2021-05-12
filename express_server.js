@@ -37,7 +37,7 @@ const authenticateUser = (email, password) => {
 }
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  userRandomID: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   
   user2RandomID: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
@@ -59,7 +59,7 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "purple"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -130,6 +130,16 @@ app.post('/login', (req, res) => {
   return res.status(403).send('Invalid email or password');
 })
 
+
+//Checks if a user is logged in
+const isLoggedIn = function(req) {
+  if (req.cookies.user_id) {
+    return {loggedIn: true, userData: req.cookies.user_id}
+  }
+  return false;
+}
+
+
 //Create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: req.cookies.user_id };
@@ -160,13 +170,34 @@ app.get("/hello", (req, res) => {
 });
 
 
+//You can update the url in this page
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL].longURL, 
-    user: req.cookies.user_id,
-  };
-  res.render("urls_show", templateVars);
+
+  const result = isLoggedIn(req);
+  
+  if (result) {
+    const newDB = filteredDB(urlDatabase, result.userData.id);
+
+    if (urlsForUser(newDB, req)) {
+      const templateVars = { shortURL: req.params.shortURL, 
+        longURL: urlDatabase[req.params.shortURL].longURL, 
+        user: req.cookies.user_id,
+      };
+      return res.render("urls_show", templateVars);
+    }
+    return res.send('This URL does not belong to you');
+  }
+  return res.send('Please log in to continue');
 });
+
+const urlsForUser = function(db, req) {
+  for (let id in db) {
+    if (req.params.shortURL === id) {
+      return true;
+    }
+  }
+  return false;
+}
 
 //DELETES URL
 app.post('/urls/:shortURL/delete', (req, res) => {
@@ -178,7 +209,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 //EDITS URL
 app.post('/urls/:shortURL', (req, res) => {
   const {shortURL} = req.params;
-  urlDatabase[shortURL] = req.body.updatedURL;
+  urlDatabase[shortURL].longURL = req.body.updatedURL;
   res.redirect('/urls');
 })
 
