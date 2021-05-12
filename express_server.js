@@ -26,6 +26,19 @@ let doesEmailExist = function(email) {
   return false;
 }
 
+//Authenticates user
+const authenticateUser = (email, password) => {
+  for (let user in users) {
+    if (users[user].email === email) {
+      if (users[user].password === password) {
+        return { data: users[user], error: null};
+      }
+      return { data: null, error: 'Incorrect password'};
+    }
+  }
+  return { data: null, error: 'Invalid email'};
+}
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -68,8 +81,10 @@ app.get('/register', (req,res) => {
 })
 app.post('/register', (req,res) => {
 
-  if (!req.body.email || !req.body.password) {
-    return res.status(400).send("Email or Password is invalid!");
+  if (!req.body.email) {
+    return res.status(400).send("Email is invalid!");
+  } else if (!req.body.password) {
+    return res.status(400).send("Password is invalid!");
   } else if (doesEmailExist(req.body.email)) {
     return res.status(400).send("A user with that email already exists");
   }
@@ -88,9 +103,16 @@ app.post('/register', (req,res) => {
 app.get('/login', (req, res) => {
   res.render('urls_login');
 })
-// app.post('/login', (req, res) => {
+app.post('/login', (req, res) => {
+  const result = authenticateUser(req.body.email, req.body.password);
 
-// })
+  if (result.error) {
+    return res.status(403).send(result.error);
+  }
+  console.log(result.data.id);
+  res.cookie('user_id', result.data.id);
+  return res.redirect('/urls');
+})
 
 //Create new URL
 app.get("/urls/new", (req, res) => {
@@ -135,11 +157,6 @@ app.post('/urls/:shortURL', (req, res) => {
   res.redirect('/urls');
 })
 
-//LOGIN + COOKIE
-app.post('/login', (req, res) => {
-  res.cookie('user_id', req.body.user_id);
-  res.redirect('/urls');
-})
 
 //LOGOUT
 app.post('/logout', (req, res) => {
