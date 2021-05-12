@@ -23,19 +23,30 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+//ROOT PAGE
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+
+//LIST OF URLS PAGE
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, username: req.cookies.username };
   res.render("urls_index", templateVars);
 });
 
+//Create new URL
+app.get("/urls/new", (req, res) => {
+  const templateVars = { username: req.cookies.username };
+  res.render("urls_new", templateVars);
+});
+
+//When user hits submit to create a new URL it will redirect them to the urls/shortURL page
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   const short = generateRandomString();
@@ -52,9 +63,6 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-});
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies.username };
