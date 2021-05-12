@@ -40,6 +40,11 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//REGISTRATION
+app.get('/registration', (req,res) => {
+  res.render('urls_registration');
+})
+
 //Create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { username: req.cookies.username };
