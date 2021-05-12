@@ -37,8 +37,8 @@ const authenticateUser = (email, password) => {
 }
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 //STORES USER DATA
@@ -125,13 +125,15 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   const short = generateRandomString();
-  urlDatabase[short] = req.body.longURL;
+  urlDatabase[short] = {
+    longURL: req.body.longURL
+  };
   res.redirect(`/urls/${short}`);         // Respond with 'Ok' (we will replace this)
 });
 
+//Takes you to the long URL page
 app.get("/u/:shortURL", (req, res) => {
-  // const longURL = ...
-  res.redirect(urlDatabase[req.params.shortURL]);
+  res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 app.get("/hello", (req, res) => {
@@ -141,7 +143,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL], 
+    longURL: urlDatabase[req.params.shortURL].longURL, 
     user: req.cookies.user_id,
   };
   res.render("urls_show", templateVars);
