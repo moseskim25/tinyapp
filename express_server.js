@@ -96,9 +96,8 @@ app.get("/urls.json", (req, res) => {
 //MAIN PAGE - LIST OF URLS
 app.get("/urls", (req, res) => {
   if (!req.cookies.user_id) {
-    return res.render('urls_login');
+    return res.render('urls_index', {urls: {}, user: null});
   }
-  console.log(req.cookies);
   const templateVars = { urls: filteredDB(urlDatabase, req.cookies.user_id.id),
     user: req.cookies.user_id};
   
