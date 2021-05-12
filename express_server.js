@@ -18,6 +18,14 @@ function generateRandomString() {
   return result;
 }
 
+//Checks if the email already exists in users database. Used in registration
+let doesEmailExist = function(email) {
+  for (let user in users) {
+    if (users[user].email === email) return true;
+  }
+  return false;
+}
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -59,6 +67,12 @@ app.get('/register', (req,res) => {
   res.render('urls_registration');
 })
 app.post('/register', (req,res) => {
+
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).send("Email or Password is invalid!");
+  } else if (doesEmailExist(req.body.email)) {
+    return res.status(400).send("A user with that email already exists");
+  }
   const id = generateRandomString();
   users[id];
   users[id] = {
