@@ -38,8 +38,21 @@ const authenticateUser = (email, password) => {
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  
+  user2RandomID: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
+
+//FILTERS URL DATABASE BY USERID
+const filteredDB = function(db, userID) {
+  let newDB = {};
+  for (let id in db) {
+    if (userID === id) {
+      newDB[id] = db[id];
+    }
+  }
+  return newDB;
+}
+
 
 //STORES USER DATA
 const users = { 
@@ -66,15 +79,16 @@ app.get("/urls.json", (req, res) => {
 });
 
 
-//LIST OF URLS PAGE
+//MAIN PAGE - LIST OF URLS
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase,
+  if (!req.cookies.user_id) {
+    return res.render('urls_login');
+  }
+  console.log(req.cookies);
+  const templateVars = { urls: filteredDB(urlDatabase, req.cookies.user_id.id),
     user: req.cookies.user_id};
   
-  if (req.cookies.user_id) {
-    return res.render("urls_index", templateVars);
-  }
-  return res.render('urls_login');
+  return res.render("urls_index", templateVars);
 });
 
 //REGISTRATION
