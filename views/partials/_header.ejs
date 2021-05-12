@@ -19,12 +19,10 @@
         </div>
       </form>
     <% } else { %> 
-      <form method='POST' action='/login'>
-        <div class='input-group'>
-          <input type='text' name='user_id' placeholder='user id' class='form-control'/>
-          <button type='submit' class="btn btn-primary">Submit</button>
-        </div>
-      </form>
+      <div class='d-grid gap-2 d-md-block'>
+        <a href='/register' class="btn btn-outline-light">Register</a>
+        <a href='/login' class="btn btn-outline-light">Login</a>
+      </div>
     <% } %> 
 
     </nav>
