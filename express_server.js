@@ -84,6 +84,14 @@ app.post('/register', (req,res) => {
   res.redirect('/urls');
 })
 
+//LOGIN
+app.get('/login', (req, res) => {
+  res.render('urls_login');
+})
+// app.post('/login', (req, res) => {
+
+// })
+
 //Create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user_id: req.cookies.user_id };
