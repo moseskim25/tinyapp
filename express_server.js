@@ -12,6 +12,10 @@ app.use(cookieParser());
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+
+const bcrypt = require('bcrypt');
+
+
 function generateRandomString() {
   let result = '';
   let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -119,13 +123,21 @@ app.post('/register', (req,res) => {
   } else if (doesEmailExist(req.body.email)) {
     return res.status(400).send("A user with that email already exists");
   }
+  
+  //Putting user info into the 'users' database
+  //db format = rtbEHW: { id: 'rtbEHW', email: 'moses.kim@live.ca', password: 'asdf' }
+  //cookie format = { id: 'rtbEHW', email: 'moses.kim@live.ca', password: 'asdf' }
   const id = generateRandomString();
+  const password = req.body.password;
+
+  //10 is the number of rounds to use when generating a salt.
+  //Salting hashes refers to adding random data to the input of a hash function to guarantee
+  //a unique output, the hash, even when the inputs are the same. 
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  const email = req.body.email;
   users[id];
-  users[id] = {
-    id: id,
-    password: req.body.password,
-    email: req.body.email
-  }
+  users[id] = { id, email, hashedPassword };
+
   res.cookie('user_id', users[id]);
   res.redirect('/urls');
 })
