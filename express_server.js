@@ -28,7 +28,6 @@ function generateRandomString() {
 //user's info if it does
 let doesEmailExist = function (email) {
   for (let user in users) {
-    console.log(users[user]);
     if (users[user].email === email) return users[user];
   }
   return false;
@@ -67,7 +66,7 @@ const urlDatabase = {
 const filteredDB = function (db, userID) {
   let newDB = {};
   for (let id in db) {
-    if (userID === id) {
+    if (db[id].userID === userID) {
       newDB[id] = db[id];
     }
   }
@@ -103,7 +102,7 @@ app.get("/urls", (req, res) => {
     return res.render("urls_index", { urls: {}, user: null });
   }
   const templateVars = { urls: filteredDB(urlDatabase, req.cookies.user_id.id), user: req.cookies.user_id };
-
+  console.log(templateVars.urls);
   return res.render("urls_index", templateVars);
 });
 
@@ -172,15 +171,17 @@ app.get("/urls/new", (req, res) => {
   return res.render("urls_new", templateVars);
 });
 
-//When user hits submit to create a new URL it will redirect them to the urls/shortURL page
+//When user hits 'create new URL' it will redirect them to the urls/shortURL page
+//Once they submit the new url it will take them to the main page
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const short = generateRandomString();
   urlDatabase[short] = {
     longURL: req.body.longURL,
-    userID: short,
+    userID: req.cookies.user_id.id
   };
-  res.redirect(`/urls/${short}`); // Respond with 'Ok' (we will replace this)
+  console.log(urlDatabase);
+  res.redirect(`/urls`); // Respond with 'Ok' (we will replace this)
 });
 
 //Takes you to the long URL page
