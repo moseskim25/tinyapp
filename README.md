@@ -4,7 +4,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-The main URLs page displays all the urls associated with the registered user. Each url comes with it's own shortened URL which you can use to access the web page.
+The main URLs page displays all the urls associated with the registered user. 
+Each url comes with it's own shortened URL which you can use to access the web page.
 !["Screenshot of URLs page"](https://github.com/moseskim25/tinyapp/blob/master/docs/Main%20page%20with%20user%20logged%20in.png?raw=true)
 
 You can register and create your own customized list here! 
