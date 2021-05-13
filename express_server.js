@@ -106,7 +106,8 @@ app.get("/urls", (req, res) => {
 
 //REGISTRATION
 app.get("/register", (req, res) => {
-  res.render("urls_registration");
+  const templateVars = { urls: {}, user: null };
+  res.render("urls_registration", templateVars);
 });
 app.post("/register", (req, res) => {
   if (!req.body.email) {
@@ -137,7 +138,7 @@ app.post("/register", (req, res) => {
 
 //LOGIN
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+  res.render("urls_login", { urls: {}, user: null });
 });
 app.post("/login", (req, res) => {
   const result = authenticateUser(req.body.email, req.body.password);
@@ -162,7 +163,7 @@ const isLoggedIn = function (req) {
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: req.session.user_id };
   if (!req.session.user_id) {
-    return res.render("urls_login");
+    return res.render("urls_login", { user: null });
   }
   return res.render("urls_new", templateVars);
 });
