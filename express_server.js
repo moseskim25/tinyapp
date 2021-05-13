@@ -1,4 +1,5 @@
 const express = require("express");
+const { doesEmailExist } = require('./helpers/helpers');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -31,18 +32,9 @@ function generateRandomString() {
   return result;
 }
 
-//Checks if the email already exists in users database and returns the
-//user's info if it does
-let doesEmailExist = function (email) {
-  for (let user in users) {
-    if (users[user].email === email) return users[user];
-  }
-  return false;
-};
-
 //Authenticates user. If everything is valid then returns user's info
 const authenticateUser = (email, password) => {
-  const result = doesEmailExist(email);
+  const result = doesEmailExist(email, users);
 
   if (result && bcrypt.compareSync(password, result.password)) {
     return result;
@@ -121,7 +113,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Email is invalid!");
   } else if (!req.body.password) {
     return res.status(400).send("Password is invalid!");
-  } else if (doesEmailExist(req.body.email)) {
+  } else if (doesEmailExist(req.body.email, users)) {
     return res.status(400).send("A user with that email already exists");
   }
 
