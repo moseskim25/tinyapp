@@ -1,12 +1,19 @@
 const express = require("express");
-const { doesEmailExist } = require('./helpers/helpers');
+const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
+const cookieSession = require("cookie-session");
+const { doesEmailExist, generateRandomString, authenticateUser, urlsForUser, filteredDB, isLoggedIn } = require('./helpers/helpers');
+
 const app = express();
 const PORT = 8080; // default port 8080
 
+
+
+
+//allows express to read ejs files
 app.set("view engine", "ejs");
 
-//Parse Cookie header and populate req.session with an object keyed by the cookie names
-const cookieSession = require("cookie-session");
+//Parses Cookie header and populate req.session with an object keyed by the cookie names
 app.use(
   cookieSession({
     name: "session",
@@ -16,62 +23,21 @@ app.use(
   })
 );
 
-//Parse incoming request bodies in a middleware before your handlers, available under the req.body property
-const bodyParser = require("body-parser");
+// Parses incoming request bodies in a middleware before your handlers, available under the req.body property
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const bcrypt = require("bcrypt");
+const emptyObj = { urls: {}, user: null };
 
-//Generates a random 6 character string to use as user's id
-function generateRandomString() {
-  let result = "";
-  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 6; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
-}
 
-//Authenticates user. If everything is valid then returns user's info
-const authenticateUser = (email, password) => {
-  const result = doesEmailExist(email, users);
+/* ------------------- SAMPLE DATABASES ----------------------------------------- */
 
-  if (result && bcrypt.compareSync(password, result.password)) {
-    return result;
-  }
-  return false;
-};
-
-//Checks if the url is in the database. Input the filtered database which includes
-//only those urls that belong to the client. The req variable is passed along when
-//the user hits EDIT in the /urls page. It includes the url id in question which is
-//passed into the following function
-const urlsForUser = function (db, req) {
-  for (let id in db) {
-    if (req.params.shortURL === id) {
-      return true;
-    }
-  }
-  return false;
-};
-
+//Database with url data
 const urlDatabase = {
   userRandomID: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
   user2RandomID: { longURL: "https://www.google.ca", userID: "user2RandomID" },
 };
 
-//FILTERS URL DATABASE BY USERID
-const filteredDB = function (db, userID) {
-  let newDB = {};
-  for (let id in db) {
-    if (db[id].userID === userID) {
-      newDB[id] = db[id];
-    }
-  }
-  return newDB;
-};
-
-//STORES USER DATA
+//Database with user data
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -84,25 +50,38 @@ const users = {
     password: "$2b$10$Dv2gtMi8SWMjzmI.SpN00ul646Kc8DxiiPjDO8PEfNERpY9Hw/Zd6",
   },
 };
+/* ------------------- END OF SAMPLE DATABASES ------------------------------------ */
+
+//returns the urls database in JSON format. Doesn't really serve any purpose but good to have when you want to do some testing
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
 
 //ROOT PAGE
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
 
-//MAIN PAGE - LIST OF URLS
+//MAIN PAGE - displays list of urls
 app.get("/urls", (req, res) => {
+
+  //checks if a user is logged in by checking if there is a cookie
+  //if no user is logged in then it returns a blank main urls page
   if (!req.session.user_id) {
-    return res.render("urls_index", { urls: {}, user: null });
+    return res.render("urls_index", emptyObj);
   }
-  const templateVars = { urls: filteredDB(urlDatabase, req.session.user_id.id), user: req.session.user_id };
-  console.log(templateVars.urls);
+
+  //otherwise it filters the database to only those urls belonging to the user
+  const usersDatabase = filteredDB(urlDatabase, req.session.user_id.id);
+  const templateVars = { 
+    urls: usersDatabase,
+    user: req.session.user_id 
+  };
   return res.render("urls_index", templateVars);
 });
+
 
 //REGISTRATION
 app.get("/register", (req, res) => {
@@ -136,12 +115,13 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+
 //LOGIN
 app.get("/login", (req, res) => {
-  res.render("urls_login", { urls: {}, user: null });
+  res.render("urls_login", emptyObj);
 });
 app.post("/login", (req, res) => {
-  const result = authenticateUser(req.body.email, req.body.password);
+  const result = authenticateUser(req.body.email, req.body.password, users);
 
   if (result) {
     req.session.user_id = result;
@@ -151,22 +131,16 @@ app.post("/login", (req, res) => {
   return res.status(403).send("Invalid email or password");
 });
 
-//Checks if a user is logged in
-const isLoggedIn = function (req) {
-  if (req.session.user_id) {
-    return { loggedIn: true, userData: req.session.user_id };
-  }
-  return false;
-};
 
 //Create new URL
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: req.session.user_id };
   if (!req.session.user_id) {
-    return res.render("urls_login", { user: null });
+    return res.render("urls_login", emptyObj);
   }
   return res.render("urls_new", templateVars);
 });
+
 
 //When user hits 'create new URL' it will redirect them to the urls/shortURL page
 //Once they submit the new url it will take them to the main page
@@ -180,6 +154,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls`); // Respond with 'Ok' (we will replace this)
 });
 
+
 //Takes you to the long URL page
 app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[req.params.shortURL].longURL);
@@ -188,6 +163,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
 
 //You can update the url in this page
 app.get("/urls/:shortURL", (req, res) => {
@@ -205,6 +181,7 @@ app.get("/urls/:shortURL", (req, res) => {
   return res.send("Please log in to continue");
 });
 
+
 //DELETES URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const { shortURL } = req.params;
@@ -217,6 +194,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
   return res.status(401).send("Unauthorized");
 });
+
 
 //EDITS URL
 app.post("/urls/:shortURL", (req, res) => {
@@ -231,11 +209,13 @@ app.post("/urls/:shortURL", (req, res) => {
   return res.status(401).send("Unauthorized");
 });
 
+
 //LOGOUT
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
