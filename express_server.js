@@ -4,10 +4,12 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+//Parse Cookie header and populate req.cookies with an object keyed by the cookie names
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+
+//Parse incoming request bodies in a middleware before your handlers, available under the req.body property
 const bodyParser = require("body-parser");
-const { filter } = require("async");
 app.use(bodyParser.urlencoded({extended: true}));
 
 function generateRandomString() {
